@@ -1,36 +1,32 @@
 import React, { ChangeEvent, FormEvent, useState } from "react";
 import { v4 } from "uuid";
 import Header from "@/app/(components)/Header";
-import { Category } from "@/state/api";
+import { ROLES } from "@/app/lib/interface";
 
-type ProductFormData = {
+export type UserFormData = {
   name: string;
-  price: number;
-  stockQuantity: number;
-  rating: number;
-  categoryId: string;
+  email: string;
+  role: string;
+  photo?: string;
 };
 
-type CreateProductModalProps = {
+type CreateUserModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  onCreate: (formData: ProductFormData) => void;
-  categories: Category[];
+  onCreate: (formData: UserFormData) => void;
 };
 
-const CreateProductModal = ({
+const CreateUserModal = ({
   isOpen,
   onClose,
   onCreate,
-  categories,
-}: CreateProductModalProps) => {
+}: CreateUserModalProps) => {
   const [formData, setFormData] = useState({
-    productId: v4(),
+    userId: v4(),
     name: "",
-    price: 0,
-    stockQuantity: 0,
-    rating: 0,
-    categoryId: "",
+    email: "",
+    role: "",
+    photo: "",
   });
 
   const handleChange = (
@@ -39,10 +35,7 @@ const CreateProductModal = ({
     const { name, value } = e.target;
     setFormData({
       ...formData,
-      [name]:
-        name === "price" || name === "stockQuantity" || name === "rating"
-          ? parseFloat(value)
-          : value,
+      [name]: value,
     });
   };
 
@@ -61,79 +54,64 @@ const CreateProductModal = ({
   return (
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-20">
       <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-        <Header name="Add New Item" />
+        <Header name="Add New User" />
         <form onSubmit={handleSubmit} className="mt-5">
-          {/* PRODUCT NAME */}
-          <label htmlFor="productName" className={labelCssStyles}>
-            Item Name
+          {/* NAME */}
+          <label htmlFor="name" className={labelCssStyles}>
+            Name
           </label>
           <input
             type="text"
             name="name"
-            placeholder="Name"
+            placeholder="Enter Name"
             onChange={handleChange}
             value={formData.name}
             className={inputCssStyles}
             required
           />
 
-          {/* PRICE */}
-          <label htmlFor="productPrice" className={labelCssStyles}>
-            Price
+          {/* EMAIL */}
+          <label htmlFor="email" className={labelCssStyles}>
+            Email
           </label>
           <input
-            type="number"
-            name="price"
-            placeholder="Price"
+            type="email"
+            name="email"
+            placeholder="Enter Email"
             onChange={handleChange}
-            value={formData.price}
+            value={formData.email}
             className={inputCssStyles}
             required
           />
 
-          {/* STOCK QUANTITY */}
-          <label htmlFor="stockQuantity" className={labelCssStyles}>
-            Stock Quantity
+          {/* PHOTO */}
+          <label htmlFor="photo" className={labelCssStyles}>
+            Photo (Optional)
           </label>
           <input
-            type="number"
-            name="stockQuantity"
-            placeholder="Stock Quantity"
+            type="url"
+            name="photo"
+            placeholder="Enter Photo"
             onChange={handleChange}
-            value={formData.stockQuantity}
+            value={formData.photo}
             className={inputCssStyles}
-            required
           />
 
-          {/* RATING */}
-          <label htmlFor="rating" className={labelCssStyles}>
-            Rating
-          </label>
-          <input
-            type="number"
-            name="rating"
-            placeholder="Rating"
-            onChange={handleChange}
-            value={formData.rating}
-            className={inputCssStyles}
-            required
-          />
-
-          {/* CATEGORY_ID */}
-          <label htmlFor="categoryId" className={labelCssStyles}>
-            Category
+          {/* ROLE */}
+          <label htmlFor="role" className={labelCssStyles}>
+            Role
           </label>
           <select
-            name="categoryId"
+            name="role"
             onChange={handleChange}
-            value={formData.categoryId}
+            value={formData.role}
             className={inputCssStyles}
             required
           >
             <option value="">Select...</option>
-            {categories.map((c) => (
-              <option key={c.categoryId} value={c.categoryId}>
-                {c.name}
+            {ROLES.map((role) => (
+              <option key={role} value={role}>
+                {role}
               </option>
             ))}
           </select>
@@ -158,4 +136,4 @@ const CreateProductModal = ({
   );
 };
 
-export default CreateProductModal;
+export default CreateUserModal;

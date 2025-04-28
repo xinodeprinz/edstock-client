@@ -1,3 +1,4 @@
+import { UserFormData } from "@/app/(account)/users/CreateUserModal";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 export interface Product {
@@ -97,6 +98,14 @@ export const api = createApi({
       }),
       invalidatesTags: ["Products"],
     }),
+    createUser: build.mutation<UserFormData, UserFormData>({
+      query: (newUser) => ({
+        url: "/users",
+        method: "POST",
+        body: newUser,
+      }),
+      invalidatesTags: ["Users"],
+    }),
     getUsers: build.query<User[], void>({
       query: () => "/users",
       providesTags: ["Users"],
@@ -111,6 +120,7 @@ export const api = createApi({
 export const {
   useGetDashboardMetricsQuery,
   useGetProductsQuery,
+  useCreateUserMutation,
   useCreateProductMutation,
   useGetUsersQuery,
   useGetExpensesByCategoryQuery,

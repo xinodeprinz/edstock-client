@@ -145,6 +145,7 @@ const Products = () => {
 
       {/* MODAL */}
       <CreateProductModal
+        categories={categories || []}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onCreate={handleCreateProduct}
