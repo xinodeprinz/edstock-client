@@ -1,5 +1,6 @@
 "use client";
 
+import { getUser } from "@/app/lib/helpers";
 import { useAppDispatch, useAppSelector } from "@/app/redux";
 import { setIsDarkMode, setIsSidebarCollapsed } from "@/state";
 import { Bell, Menu, Moon, Settings, Sun } from "lucide-react";
@@ -21,6 +22,8 @@ const Navbar = () => {
   const toggleDarkMode = () => {
     dispatch(setIsDarkMode(!isDarkMode));
   };
+
+  const user = getUser();
 
   return (
     <div className="flex justify-between items-center w-full mb-7">
@@ -67,13 +70,13 @@ const Navbar = () => {
           <hr className="w-0 h-7 border border-solid border-l border-gray-300 mx-3" />
           <div className="flex items-center gap-3 cursor-pointer">
             <Image
-              src="/assets/profile.jpg"
-              alt="Profile"
+              src={user?.photo || "/assets/empty.png"}
+              alt={user?.name as string}
               width={50}
               height={50}
               className="rounded-full size-12 object-cover"
             />
-            <span className="font-semibold">Assong Carly</span>
+            <span className="font-semibold capitalize">{user?.name}</span>
           </div>
         </div>
         <Link href="/settings">

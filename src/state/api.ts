@@ -6,6 +6,12 @@ export interface Product {
   price: number;
   rating?: number;
   stockQuantity: number;
+  photo: string | null;
+}
+
+export interface Category {
+  categoryId: string;
+  name: string;
 }
 
 export interface NewProduct {
@@ -56,21 +62,32 @@ export interface User {
   email: string;
 }
 
+interface ProductParams {
+  search?: string;
+  categoryId?: string;
+}
+
 export const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL }),
   reducerPath: "api",
-  tagTypes: ["DashboardMetrics", "Products", "Users", "Expenses"],
+  tagTypes: ["DashboardMetrics", "Products", "Users", "Expenses", "Categories"],
   endpoints: (build) => ({
     getDashboardMetrics: build.query<DashboardMetrics, void>({
       query: () => "/dashboard",
       providesTags: ["DashboardMetrics"],
     }),
-    getProducts: build.query<Product[], string | void>({
-      query: (search) => ({
+    getProducts: build.query<Product[], ProductParams>({
+      query: ({ search, categoryId }) => ({
         url: "/products",
-        params: search ? { search } : {},
+        params: { search, categoryId },
       }),
       providesTags: ["Products"],
+    }),
+    getCategories: build.query<Category[], string | void>({
+      query: () => ({
+        url: "/products/categories",
+      }),
+      providesTags: ["Categories"],
     }),
     createProduct: build.mutation<Product, NewProduct>({
       query: (newProduct) => ({
@@ -97,4 +114,5 @@ export const {
   useCreateProductMutation,
   useGetUsersQuery,
   useGetExpensesByCategoryQuery,
+  useGetCategoriesQuery,
 } = api;
