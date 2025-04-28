@@ -1,6 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Write your configs here
+  async redirects() {
+    return [
+      {
+        source: '/',
+        destination: '/dashboard',
+        permanent: true, // 301 redirect (SEO-friendly)
+      },
+    ];
+  },
 };
 
 export default nextConfig;
