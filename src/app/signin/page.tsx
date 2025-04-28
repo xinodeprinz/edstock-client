@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
+import axiosApi from "@/state/axios";
+import { AxiosError } from "axios";
 
 export default function SignIn() {
   const [email, setEmail] = useState("");
@@ -12,6 +13,14 @@ export default function SignIn() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
+  // For protected routes
+  useEffect(() => {
+    const user = localStorage.getItem("user");
+    if (user) {
+      router.push("/dashboard");
+    }
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -19,21 +28,21 @@ export default function SignIn() {
 
     try {
       // Replace with your actual authentication logic
-      const response = await fetch("/api/auth/signin", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+      const res = await axiosApi.post("/users/signin", { email, password });
 
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message || "Authentication failed");
-      }
+      // Store data in local storage
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("user", JSON.stringify(res.data.user));
 
       // Redirect to dashboard on success
       router.push("/dashboard");
     } catch (err: any) {
-      setError(err.message || "Failed to sign in. Please try again.");
+      console.log(err);
+      if (err instanceof AxiosError) {
+        setError(err.response?.data.message);
+      } else {
+        setError(err.message || "Failed to sign in. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -119,12 +128,6 @@ export default function SignIn() {
                 >
                   Password
                 </label>
-                <Link
-                  href="/forgot-password"
-                  className="text-sm text-blue-600 hover:text-blue-800"
-                >
-                  Forgot password?
-                </Link>
               </div>
               <input
                 id="password"
@@ -137,20 +140,6 @@ export default function SignIn() {
               />
             </div>
 
-            <div className="flex items-center mb-6">
-              <input
-                id="remember"
-                type="checkbox"
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-              />
-              <label
-                htmlFor="remember"
-                className="ml-2 block text-sm text-gray-700"
-              >
-                Remember me
-              </label>
-            </div>
-
             <button
               type="submit"
               disabled={isLoading}
@@ -159,18 +148,6 @@ export default function SignIn() {
               {isLoading ? "Signing in..." : "Sign In"}
             </button>
           </form>
-
-          <div className="mt-8 text-center">
-            <p className="text-gray-600">
-              Don't have an account?{" "}
-              <Link
-                href="/signup"
-                className="text-blue-600 hover:text-blue-800 font-medium"
-              >
-                Sign up
-              </Link>
-            </p>
-          </div>
         </div>
       </div>
     </div>
