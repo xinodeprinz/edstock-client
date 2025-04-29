@@ -136,6 +136,13 @@ export const api = createApi({
       }),
       invalidatesTags: ["Products"],
     }),
+    deleteUser: build.mutation<void, string>({
+      query: (userId) => ({
+        url: `/users/${userId}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Users"],
+    }),
     uploadProductImage: build.mutation<{ url: string }, FormData>({
       query: (formData) => ({
         url: "/upload/product-image",
@@ -173,4 +180,5 @@ export const {
   useGetUsersQuery,
   useGetExpensesByCategoryQuery,
   useGetCategoriesQuery,
+  useDeleteUserMutation,
 } = api;

@@ -2,22 +2,10 @@
 
 import { useAppDispatch, useAppSelector } from "@/app/redux";
 import { setIsSidebarCollapsed } from "@/state";
-import {
-  Archive,
-  CircleDollarSign,
-  Clipboard,
-  Layout,
-  LogOutIcon,
-  LucideIcon,
-  Menu,
-  Router,
-  SlidersHorizontal,
-  User,
-} from "lucide-react";
+import { Layout, LogOutIcon, LucideIcon, Menu, User } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React from "react";
 
 interface SidebarLinkProps {
   href: (() => void) | string;
@@ -134,12 +122,6 @@ const Sidebar = () => {
           href="/users"
           icon={User}
           label="Users"
-          isCollapsed={isSidebarCollapsed}
-        />
-        <SidebarLink
-          href="/settings"
-          icon={SlidersHorizontal}
-          label="Settings"
           isCollapsed={isSidebarCollapsed}
         />
         <SidebarLink

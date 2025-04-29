@@ -1,24 +1,51 @@
 "use client";
 
-import { useCreateUserMutation, useGetUsersQuery } from "@/state/api";
+import {
+  useCreateUserMutation,
+  useDeleteUserMutation,
+  useGetUsersQuery,
+} from "@/state/api";
 import Header from "@/app/(components)/Header";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
-import { PlusCircleIcon } from "lucide-react";
+import { PlusCircleIcon, Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import CreateUserModal, { UserFormData } from "./CreateUserModal";
-
-const columns: GridColDef[] = [
-  { field: "userId", headerName: "ID", width: 90 },
-  { field: "name", headerName: "Name", width: 200 },
-  { field: "email", headerName: "Email", width: 200 },
-  { field: "role", headerName: "Role", width: 200 },
-];
+import { IconButton } from "@mui/material";
 
 const Users = () => {
-  const { data: users, isError, isLoading } = useGetUsersQuery();
+  const { data: users, isError, isLoading, refetch } = useGetUsersQuery();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [createUser] = useCreateUserMutation();
+  const [deleteUser] = useDeleteUserMutation();
+
+  const columns: GridColDef[] = [
+    { field: "userId", headerName: "ID", width: 90 },
+    { field: "name", headerName: "Name", width: 200 },
+    { field: "email", headerName: "Email", width: 200 },
+    { field: "role", headerName: "Role", width: 200 },
+    {
+      field: "actions",
+      headerName: "Actions",
+      width: 100,
+      renderCell: (params) => (
+        <IconButton
+          onClick={() => handleDeleteUser(params.row.userId)}
+          aria-label="delete"
+          color="error"
+        >
+          <Trash2Icon className="w-4 h-4" />
+        </IconButton>
+      ),
+    },
+  ];
+
+  const handleDeleteUser = async (userId: string) => {
+    if (confirm("Are you sure you want to delete this user?")) {
+      await deleteUser(userId);
+      refetch();
+    }
+  };
 
   if (isLoading) {
     return <div className="py-4">Loading...</div>;
