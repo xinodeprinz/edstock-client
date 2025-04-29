@@ -17,9 +17,7 @@ const Users = () => {
   const { data: users, isError, isLoading, refetch } = useGetUsersQuery();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const user = getUser();
-  const canPerform = !!(
-    user && ["SUPER_ADMIN", "INVENTORY_MANAGER"].includes(user.role)
-  );
+  const canPerform = !!(user && ["SUPER_ADMIN"].includes(user.role));
 
   const [createUser] = useCreateUserMutation();
   const [deleteUser] = useDeleteUserMutation();
