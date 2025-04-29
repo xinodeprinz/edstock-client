@@ -7,7 +7,6 @@ export type UserFormData = {
   name: string;
   email: string;
   role: string;
-  photo?: string;
 };
 
 type CreateUserModalProps = {
@@ -26,7 +25,6 @@ const CreateUserModal = ({
     name: "",
     email: "",
     role: "",
-    photo: "",
   });
 
   const handleChange = (
@@ -82,19 +80,6 @@ const CreateUserModal = ({
             value={formData.email}
             className={inputCssStyles}
             required
-          />
-
-          {/* PHOTO */}
-          <label htmlFor="photo" className={labelCssStyles}>
-            Photo (Optional)
-          </label>
-          <input
-            type="url"
-            name="photo"
-            placeholder="Enter Photo"
-            onChange={handleChange}
-            value={formData.photo}
-            className={inputCssStyles}
           />
 
           {/* ROLE */}
