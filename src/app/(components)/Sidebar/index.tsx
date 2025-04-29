@@ -7,18 +7,20 @@ import {
   CircleDollarSign,
   Clipboard,
   Layout,
+  LogOutIcon,
   LucideIcon,
   Menu,
+  Router,
   SlidersHorizontal,
   User,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import React from "react";
+import { usePathname, useRouter } from "next/navigation";
+import React, { useEffect, useState } from "react";
 
 interface SidebarLinkProps {
-  href: string;
+  href: (() => void) | string;
   icon: LucideIcon;
   label: string;
   isCollapsed: boolean;
@@ -31,11 +33,21 @@ const SidebarLink = ({
   isCollapsed,
 }: SidebarLinkProps) => {
   const pathname = usePathname();
-  const isActive =
-    pathname === href || (pathname === "/" && href === "/dashboard");
+
+  const router = useRouter();
+
+  const handleClick = () => {
+    if (typeof href === "string") {
+      router.push(href);
+    } else {
+      href();
+    }
+  };
+
+  const isActive = typeof href === "string" && pathname === href;
 
   return (
-    <Link href={href}>
+    <button onClick={handleClick}>
       <div
         className={`cursor-pointer flex items-center ${
           isCollapsed ? "justify-center py-4" : "justify-start px-8 py-4"
@@ -55,11 +67,12 @@ const SidebarLink = ({
           {label}
         </span>
       </div>
-    </Link>
+    </button>
   );
 };
 
 const Sidebar = () => {
+  const router = useRouter();
   const dispatch = useAppDispatch();
   const isSidebarCollapsed = useAppSelector(
     (state) => state.global.isSidebarCollapsed
@@ -72,6 +85,11 @@ const Sidebar = () => {
   const sidebarClassNames = `fixed flex flex-col ${
     isSidebarCollapsed ? "w-0 md:w-16" : "w-72 md:w-64"
   } bg-white transition-all duration-300 overflow-hidden h-full shadow-md z-40`;
+
+  const logout = () => {
+    localStorage.clear();
+    router.push("/signin");
+  };
 
   return (
     <div className={sidebarClassNames}>
@@ -125,9 +143,9 @@ const Sidebar = () => {
           isCollapsed={isSidebarCollapsed}
         />
         <SidebarLink
-          href="/expenses"
-          icon={CircleDollarSign}
-          label="Expenses"
+          href={logout}
+          icon={LogOutIcon}
+          label="Logout"
           isCollapsed={isSidebarCollapsed}
         />
       </div>

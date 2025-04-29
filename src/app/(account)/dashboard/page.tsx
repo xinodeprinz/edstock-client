@@ -60,8 +60,8 @@ const Products = () => {
     if (!products) return [];
 
     return [...products].sort((a, b) => {
-      let aValue = a[sortField];
-      let bValue = b[sortField];
+      let aValue = a[sortField as keyof Product];
+      let bValue = b[sortField as keyof Product];
 
       // Handle special cases
       if (sortField === "category") {
