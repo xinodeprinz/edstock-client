@@ -11,6 +11,7 @@ import { Category } from "@/state/api";
 import { X, Upload, Image as ImageIcon } from "lucide-react";
 import Rating from "@/app/(components)/Rating";
 import Image from "next/image";
+import { getPhoto } from "@/app/lib/helpers";
 
 type ProductFormData = {
   name: string;
@@ -84,7 +85,7 @@ const CreateProductModal = ({
 
         // Set preview if photo exists
         if (initialData.photo) {
-          setPreviewUrl(initialData.photo);
+          setPreviewUrl(getPhoto(initialData.photo));
         } else {
           setPreviewUrl(null);
         }
