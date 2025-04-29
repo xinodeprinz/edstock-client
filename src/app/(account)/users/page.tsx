@@ -11,10 +11,15 @@ import { PlusCircleIcon, Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import CreateUserModal, { UserFormData } from "./CreateUserModal";
 import { IconButton } from "@mui/material";
+import { getUser } from "@/app/lib/helpers";
 
 const Users = () => {
   const { data: users, isError, isLoading, refetch } = useGetUsersQuery();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const user = getUser();
+  const canPerform = !!(
+    user && ["SUPER_ADMIN", "INVENTORY_MANAGER"].includes(user.role)
+  );
 
   const [createUser] = useCreateUserMutation();
   const [deleteUser] = useDeleteUserMutation();
@@ -24,7 +29,10 @@ const Users = () => {
     { field: "name", headerName: "Name", width: 200 },
     { field: "email", headerName: "Email", width: 200 },
     { field: "role", headerName: "Role", width: 200 },
-    {
+  ];
+
+  if (canPerform) {
+    columns.push({
       field: "actions",
       headerName: "Actions",
       width: 100,
@@ -37,8 +45,8 @@ const Users = () => {
           <Trash2Icon className="w-4 h-4" />
         </IconButton>
       ),
-    },
-  ];
+    });
+  }
 
   const handleDeleteUser = async (userId: string) => {
     if (confirm("Are you sure you want to delete this user?")) {
@@ -67,12 +75,14 @@ const Users = () => {
       <div className="flex flex-col md:flex-row gap-5 justify-between items-center mb-6">
         <Header name="Users" />
 
-        <button
-          className="flex items-center bg-blue-500 hover:bg-blue-700 text-gray-200 font-bold py-2 px-4 rounded"
-          onClick={() => setIsModalOpen(true)}
-        >
-          <PlusCircleIcon className="w-5 h-5 mr-2 !text-gray-200" /> Add User
-        </button>
+        {canPerform && (
+          <button
+            className="flex items-center bg-blue-500 hover:bg-blue-700 text-gray-200 font-bold py-2 px-4 rounded"
+            onClick={() => setIsModalOpen(true)}
+          >
+            <PlusCircleIcon className="w-5 h-5 mr-2 !text-gray-200" /> Add User
+          </button>
+        )}
       </div>
       <DataGrid
         rows={users}

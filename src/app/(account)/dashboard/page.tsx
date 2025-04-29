@@ -19,7 +19,7 @@ import { useState, useMemo } from "react";
 import Header from "@/app/(components)/Header";
 import CreateProductModal from "./CreateProductModal";
 import Image from "next/image";
-import { getPhoto } from "@/app/lib/helpers";
+import { getPhoto, getUser } from "@/app/lib/helpers";
 
 type ProductFormData = {
   name: string;
@@ -42,6 +42,12 @@ const Products = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [sortField, setSortField] = useState("createdAt");
   const [sortDirection, setSortDirection] = useState("desc");
+
+  const user = getUser();
+  const canPerform = !!(
+    user &&
+    ["SUPER_ADMIN", "INVENTORY_MANAGER", "WAREHOUSE_STAFF"].includes(user.role)
+  );
 
   const { data: categories } = useGetCategoriesQuery();
 
@@ -203,16 +209,18 @@ const Products = () => {
             ))}
           </select>
         )}
-        <button
-          className="flex items-center bg-blue-500 hover:bg-blue-700 text-gray-200 font-bold py-2 px-4 rounded"
-          onClick={() => {
-            setIsEditMode(false);
-            setCurrentProduct(null);
-            setIsModalOpen(true);
-          }}
-        >
-          <PlusCircleIcon className="w-5 h-5 mr-2 !text-gray-200" /> Add Item
-        </button>
+        {canPerform && (
+          <button
+            className="flex items-center bg-blue-500 hover:bg-blue-700 text-gray-200 font-bold py-2 px-4 rounded"
+            onClick={() => {
+              setIsEditMode(false);
+              setCurrentProduct(null);
+              setIsModalOpen(true);
+            }}
+          >
+            <PlusCircleIcon className="w-5 h-5 mr-2 !text-gray-200" /> Add Item
+          </button>
+        )}
       </div>
 
       {/* INVENTORY TABLE */}
@@ -295,9 +303,11 @@ const Products = () => {
                   <ArrowUpDown className="ml-1 h-4 w-4" />
                 </div>
               </th>
-              <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
-              </th>
+              {canPerform && (
+                <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
+              )}
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
@@ -361,24 +371,26 @@ const Products = () => {
                   <td className="py-3 px-4 whitespace-nowrap text-sm text-gray-500">
                     {formatDate(product.createdAt || "01/01/2025")}
                   </td>
-                  <td className="py-3 px-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => handleEditClick(product)}
-                        className="text-blue-600 hover:text-blue-900"
-                        title="Edit item"
-                      >
-                        <Pencil size={16} />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteProduct(product.productId)}
-                        className="text-red-600 hover:text-red-900"
-                        title="Delete item"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </td>
+                  {canPerform && (
+                    <td className="py-3 px-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => handleEditClick(product)}
+                          className="text-blue-600 hover:text-blue-900"
+                          title="Edit item"
+                        >
+                          <Pencil size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteProduct(product.productId)}
+                          className="text-red-600 hover:text-red-900"
+                          title="Delete item"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))
             ) : (
