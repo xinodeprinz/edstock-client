@@ -19,6 +19,7 @@ import { useState, useMemo } from "react";
 import Header from "@/app/(components)/Header";
 import CreateProductModal from "./CreateProductModal";
 import Image from "next/image";
+import { getPhoto } from "@/app/lib/helpers";
 
 type ProductFormData = {
   name: string;
@@ -39,8 +40,8 @@ const Products = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentProduct, setCurrentProduct] = useState<Product | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [sortField, setSortField] = useState("name");
-  const [sortDirection, setSortDirection] = useState("asc");
+  const [sortField, setSortField] = useState("createdAt");
+  const [sortDirection, setSortDirection] = useState("desc");
 
   const { data: categories } = useGetCategoriesQuery();
 
@@ -89,7 +90,13 @@ const Products = () => {
       productData.sku = `SKU-${Math.floor(Math.random() * 10000)}`;
     }
 
-    await createProduct(productData);
+    // Prepare form data
+    const formData = new FormData();
+    Object.entries(productData).map(([key, value]) =>
+      formData.append(key, value)
+    );
+
+    await createProduct(formData);
     setIsModalOpen(false);
     refetch();
   };
@@ -101,19 +108,14 @@ const Products = () => {
   };
 
   const handleUpdateProduct = async (productData: ProductFormData) => {
+    // Prepare form data
+    const formData = new FormData();
+    Object.entries(productData).map(([key, value]) =>
+      formData.append(key, value)
+    );
+
     if (productData.productId) {
-      await updateProduct({
-        productId: productData.productId,
-        name: productData.name,
-        price: productData.price,
-        stockQuantity: productData.stockQuantity,
-        rating: productData.rating,
-        categoryId: productData.categoryId,
-        sku: productData.sku,
-        location: productData.location,
-        supplier: productData.supplier,
-        photo: productData.photo || null,
-      });
+      await updateProduct({ productId: productData.productId, formData });
       setIsModalOpen(false);
       setIsEditMode(false);
       setCurrentProduct(null);
@@ -306,10 +308,11 @@ const Products = () => {
                     <div className="h-12 w-12 flex-shrink-0">
                       <Image
                         src={
-                          product.photo ||
-                          `/assets/products/${
-                            Math.floor(Math.random() * 16) + 1
-                          }.png`
+                          product.photo
+                            ? getPhoto(product.photo)
+                            : `/assets/products/${
+                                Math.floor(Math.random() * 16) + 1
+                              }.png`
                         }
                         alt={product.name}
                         width={48}

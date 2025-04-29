@@ -3,19 +3,36 @@ const nextConfig = {
   async redirects() {
     return [
       {
-        source: '/',
-        destination: '/dashboard',
+        source: "/",
+        destination: "/dashboard",
         permanent: true, // 301 redirect (SEO-friendly)
       },
     ];
   },
 
   typescript: {
-    ignoreBuildErrors:true
+    ignoreBuildErrors: true,
   },
   eslint: {
-    ignoreDuringBuilds:true
-  }
+    ignoreDuringBuilds: true,
+  },
+
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "edstock-server.vercel.app",
+        port: "",
+        pathname: "/uploads/**",
+      },
+      {
+        protocol: "http",
+        hostname: "localhost",
+        port: "5500",
+        pathname: "/uploads/**",
+      },
+    ],
+  },
 };
 
 export default nextConfig;

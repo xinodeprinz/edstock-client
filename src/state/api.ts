@@ -80,6 +80,11 @@ export interface DashboardMetrics {
   expenseByCategorySummary: ExpenseByCategorySummary[];
 }
 
+export interface UpdateProductBody {
+  productId: string;
+  formData: FormData;
+}
+
 export interface User {
   userId: string;
   name: string;
@@ -113,7 +118,7 @@ export const api = createApi({
       }),
       providesTags: ["Categories"],
     }),
-    createProduct: build.mutation<Product, NewProduct>({
+    createProduct: build.mutation<Product, FormData>({
       query: (newProduct) => ({
         url: "/products",
         method: "POST",
@@ -121,11 +126,11 @@ export const api = createApi({
       }),
       invalidatesTags: ["Products"],
     }),
-    updateProduct: build.mutation<Product, UpdateProduct>({
-      query: ({ productId, ...updates }) => ({
+    updateProduct: build.mutation<Product, UpdateProductBody>({
+      query: ({ productId, formData }) => ({
         url: `/products/${productId}`,
         method: "PUT",
-        body: updates,
+        body: formData,
       }),
       invalidatesTags: ["Products"],
     }),

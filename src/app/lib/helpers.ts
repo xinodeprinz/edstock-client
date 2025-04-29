@@ -6,3 +6,8 @@ export function getUser(): null | User {
 
   return JSON.parse(item) as User;
 }
+
+export function getPhoto(photo: string) {
+  const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
+  return baseURL + photo;
+}
