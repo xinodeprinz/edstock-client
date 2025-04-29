@@ -26,6 +26,12 @@ const nextConfig = {
         pathname: "/uploads/**",
       },
       {
+        protocol: "https",
+        hostname: "edstock-server.onrender.com",
+        port: "",
+        pathname: "/uploads/**",
+      },
+      {
         protocol: "http",
         hostname: "localhost",
         port: "5500",
