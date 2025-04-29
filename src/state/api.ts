@@ -8,6 +8,11 @@ export interface Product {
   rating?: number;
   stockQuantity: number;
   photo: string | null;
+  categoryId?: string;
+  sku?: string;
+  location?: string;
+  supplier?: string;
+  createdAt?: string;
 }
 
 export interface Category {
@@ -20,6 +25,24 @@ export interface NewProduct {
   price: number;
   rating?: number;
   stockQuantity: number;
+  categoryId?: string;
+  photo?: string | null;
+  sku?: string;
+  location?: string;
+  supplier?: string;
+}
+
+export interface UpdateProduct {
+  productId: string;
+  name?: string;
+  price?: number;
+  rating?: number;
+  stockQuantity?: number;
+  categoryId?: string;
+  photo?: string | null;
+  sku?: string;
+  location?: string;
+  supplier?: string;
 }
 
 export interface SalesSummary {
@@ -98,6 +121,28 @@ export const api = createApi({
       }),
       invalidatesTags: ["Products"],
     }),
+    updateProduct: build.mutation<Product, UpdateProduct>({
+      query: ({ productId, ...updates }) => ({
+        url: `/products/${productId}`,
+        method: "PUT",
+        body: updates,
+      }),
+      invalidatesTags: ["Products"],
+    }),
+    deleteProduct: build.mutation<void, string>({
+      query: (productId) => ({
+        url: `/products/${productId}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Products"],
+    }),
+    uploadProductImage: build.mutation<{ url: string }, FormData>({
+      query: (formData) => ({
+        url: "/upload/product-image",
+        method: "POST",
+        body: formData,
+      }),
+    }),
     createUser: build.mutation<UserFormData, UserFormData>({
       query: (newUser) => ({
         url: "/users",
@@ -122,6 +167,9 @@ export const {
   useGetProductsQuery,
   useCreateUserMutation,
   useCreateProductMutation,
+  useUpdateProductMutation,
+  useDeleteProductMutation,
+  useUploadProductImageMutation,
   useGetUsersQuery,
   useGetExpensesByCategoryQuery,
   useGetCategoriesQuery,
