@@ -356,9 +356,6 @@ export default function AnalysisPage() {
     if (!dashboardRef.current) return;
 
     try {
-      // Show loading state or notification
-      const loadingToast = window.alert("Generating PDF, please wait...");
-
       const canvas = await html2canvas(dashboardRef.current, {
         scale: 1,
         logging: false,
@@ -392,10 +389,8 @@ export default function AnalysisPage() {
       pdf.save("inventory-analysis-report.pdf");
 
       // Hide loading notification
-      window.alert("PDF Downloaded!");
     } catch (error) {
       console.error("Failed to generate PDF:", error);
-      window.alert("Failed to generate PDF. Please try again.");
     }
 
     setShowExportDropdown(false);
@@ -455,7 +450,6 @@ export default function AnalysisPage() {
       document.body.removeChild(link);
     } catch (error) {
       console.error("Failed to export as CSV:", error);
-      window.alert("Failed to export as CSV. Please try again.");
     }
 
     setShowExportDropdown(false);
@@ -542,7 +536,6 @@ export default function AnalysisPage() {
       XLSX.writeFile(wb, "inventory-analysis-report.xlsx");
     } catch (error) {
       console.error("Failed to export as Excel:", error);
-      window.alert("Failed to export as Excel. Please try again.");
     }
 
     setShowExportDropdown(false);
