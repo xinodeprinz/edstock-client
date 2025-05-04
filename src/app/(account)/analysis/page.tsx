@@ -676,14 +676,14 @@ export default function AnalysisPage() {
               changeType="positive"
             />
             <AnalysisCard
-              title="Total Items in Stock"
+              title="Total Quantity in Stock"
               value={totalItems.toLocaleString()}
               icon={<BarChart3 className="w-6 h-6 text-green-500" />}
               change="+5% from last month"
               changeType="positive"
             />
             <AnalysisCard
-              title="Total Products"
+              title="Total Items"
               value={totalProducts.toLocaleString()}
               icon={<PieChartIcon className="w-6 h-6 text-purple-500" />}
               change="No change"
