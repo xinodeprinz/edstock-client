@@ -30,7 +30,7 @@ import {
   LineChart as LineChartIcon,
   Filter,
 } from "lucide-react";
-import { formatAmount } from "../lib/helpers";
+import { formatAmount } from "../../lib/helpers";
 
 type AnalysisCardProps = {
   title: string;
@@ -596,7 +596,8 @@ export default function AnalysisPage() {
                           {product.stockQuantity}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {product.sku}
+                          {product.sku ||
+                            `SKU-${Math.floor(Math.random() * 10000)}`}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {product.location || "N/A"}
