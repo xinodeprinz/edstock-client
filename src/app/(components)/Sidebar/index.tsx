@@ -2,7 +2,14 @@
 
 import { useAppDispatch, useAppSelector } from "@/app/redux";
 import { setIsSidebarCollapsed } from "@/state";
-import { Layout, LogOutIcon, LucideIcon, Menu, User } from "lucide-react";
+import {
+  BarChart2,
+  Layout,
+  LogOutIcon,
+  LucideIcon,
+  Menu,
+  User,
+} from "lucide-react";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import React from "react";
@@ -122,6 +129,12 @@ const Sidebar = () => {
           href="/users"
           icon={User}
           label="Users"
+          isCollapsed={isSidebarCollapsed}
+        />
+        <SidebarLink
+          href="/analysis"
+          icon={BarChart2}
+          label="Analysis"
           isCollapsed={isSidebarCollapsed}
         />
         <SidebarLink
