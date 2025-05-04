@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Header from "@/app/(components)/Header";
 import {
   BarChart,
@@ -29,8 +29,16 @@ import {
   PieChart as PieChartIcon,
   LineChart as LineChartIcon,
   Filter,
+  Download,
+  FileText,
+  FileSpreadsheet,
+  ChevronDown,
 } from "lucide-react";
-import { formatAmount } from "../../lib/helpers";
+import { formatAmount } from "@/app/lib/helpers";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
+import Papa from "papaparse";
+import * as XLSX from "xlsx";
 
 type AnalysisCardProps = {
   title: string;
@@ -144,6 +152,10 @@ export default function AnalysisPage() {
   const [timeRange, setTimeRange] = useState<TimeRange>("30days");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [supplierFilter, setSupplierFilter] = useState<string>("all");
+  const [showExportDropdown, setShowExportDropdown] = useState<boolean>(false);
+  const dashboardRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
   // Loading state is now derived from RTK Query loading states
 
   // Filters data
@@ -183,6 +195,23 @@ export default function AnalysisPage() {
       ]);
     }
   }, [productsData, categoriesData]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setShowExportDropdown(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   // Filter products based on selected filters
   const filteredProducts = products.filter((product) => {
@@ -322,10 +351,250 @@ export default function AnalysisPage() {
     .sort((a, b) => a.stockQuantity - b.stockQuantity)
     .slice(0, 5);
 
+  // Export functions
+  const exportAsPDF = async () => {
+    if (!dashboardRef.current) return;
+
+    try {
+      // Show loading state or notification
+      const loadingToast = window.alert("Generating PDF, please wait...");
+
+      const canvas = await html2canvas(dashboardRef.current, {
+        scale: 1,
+        logging: false,
+        useCORS: true,
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+      });
+
+      const imgWidth = 210; // A4 width in mm
+      const pageHeight = 297; // A4 height in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      // Add more pages if the content exceeds a single page
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      pdf.save("inventory-analysis-report.pdf");
+
+      // Hide loading notification
+      window.alert("PDF Downloaded!");
+    } catch (error) {
+      console.error("Failed to generate PDF:", error);
+      window.alert("Failed to generate PDF. Please try again.");
+    }
+
+    setShowExportDropdown(false);
+  };
+
+  const exportAsCSV = () => {
+    try {
+      // Prepare data for CSV export
+      let csvData = [
+        // Summary Data
+        ["Inventory Analysis Report", ""],
+        ["Date", new Date().toLocaleDateString()],
+        ["Time Range", timeRange],
+        [""],
+        ["Summary Metrics", ""],
+        ["Total Inventory Value", formatAmount(totalInventoryValue)],
+        ["Total Items in Stock", totalItems.toString()],
+        ["Total Products", totalProducts.toString()],
+        ["Low Stock Items", lowStockProducts.toString()],
+        [""],
+
+        // Category Data
+        ["Category Breakdown", ""],
+        ["Category Name", "Stock Quantity", "Inventory Value"],
+        ...stockByCategory.map((cat) => [
+          cat.name,
+          cat.stockQuantity.toString(),
+          cat.value.toString(),
+        ]),
+        [""],
+
+        // Top Products
+        ["Top Products by Value", ""],
+        ["Product Name", "Value"],
+        ...topProducts.map((prod) => [prod.name, prod.value.toString()]),
+        [""],
+
+        // Low Stock Items
+        ["Low Stock Items", ""],
+        ["Product Name", "Current Stock", "Value"],
+        ...lowStockItems.map((item) => [
+          item.name,
+          item.stockQuantity.toString(),
+          (item.price * item.stockQuantity).toString(),
+        ]),
+      ];
+
+      const csv = Papa.unparse(csvData);
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "inventory-analysis-report.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error("Failed to export as CSV:", error);
+      window.alert("Failed to export as CSV. Please try again.");
+    }
+
+    setShowExportDropdown(false);
+  };
+
+  const exportAsExcel = () => {
+    try {
+      // Create workbook and worksheet
+      const wb = XLSX.utils.book_new();
+
+      // Summary sheet
+      const summaryData = [
+        ["Inventory Analysis Report"],
+        ["Date", new Date().toLocaleDateString()],
+        ["Time Range", timeRange],
+        [""],
+        ["Summary Metrics"],
+        ["Total Inventory Value", totalInventoryValue],
+        ["Total Items in Stock", totalItems],
+        ["Total Products", totalProducts],
+        ["Low Stock Items", lowStockProducts],
+      ];
+      const summaryWs = XLSX.utils.aoa_to_sheet(summaryData);
+      XLSX.utils.book_append_sheet(wb, summaryWs, "Summary");
+
+      // Categories sheet
+      const categoryHeaders = [
+        "Category Name",
+        "Stock Quantity",
+        "Inventory Value",
+      ];
+      const categoryData = stockByCategory.map((cat) => [
+        cat.name,
+        cat.stockQuantity,
+        cat.value,
+      ]);
+      const categoryWs = XLSX.utils.aoa_to_sheet([
+        categoryHeaders,
+        ...categoryData,
+      ]);
+      XLSX.utils.book_append_sheet(wb, categoryWs, "Categories");
+
+      // Products sheet
+      const productsData = filteredProducts.map((product) => [
+        product.name,
+        product.sku || "",
+        product.categoryId || "",
+        product.supplier || "",
+        product.price,
+        product.stockQuantity,
+        product.price * product.stockQuantity,
+      ]);
+      const productsHeaders = [
+        "Name",
+        "SKU",
+        "Category ID",
+        "Supplier",
+        "Price",
+        "Stock",
+        "Value",
+      ];
+      const productsWs = XLSX.utils.aoa_to_sheet([
+        productsHeaders,
+        ...productsData,
+      ]);
+      XLSX.utils.book_append_sheet(wb, productsWs, "Products");
+
+      // Low stock sheet
+      const lowStockData = lowStockItems.map((item) => [
+        item.name,
+        item.sku || "",
+        item.stockQuantity,
+        item.price,
+        item.price * item.stockQuantity,
+      ]);
+      const lowStockHeaders = ["Name", "SKU", "Stock", "Price", "Value"];
+      const lowStockWs = XLSX.utils.aoa_to_sheet([
+        lowStockHeaders,
+        ...lowStockData,
+      ]);
+      XLSX.utils.book_append_sheet(wb, lowStockWs, "Low Stock");
+
+      // Write and download
+      XLSX.writeFile(wb, "inventory-analysis-report.xlsx");
+    } catch (error) {
+      console.error("Failed to export as Excel:", error);
+      window.alert("Failed to export as Excel. Please try again.");
+    }
+
+    setShowExportDropdown(false);
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="mb-5">
+    <div
+      className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8"
+      ref={dashboardRef}
+    >
+      <div className="mb-5 flex justify-between items-center">
         <Header name="Inventory Analysis Dashboard" />
+
+        {/* Export Dropdown */}
+        <div className="relative" ref={dropdownRef}>
+          <button
+            onClick={() => setShowExportDropdown(!showExportDropdown)}
+            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Export
+            <ChevronDown className="w-4 h-4 ml-1" />
+          </button>
+
+          {showExportDropdown && (
+            <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10">
+              <div className="py-1">
+                <button
+                  onClick={exportAsCSV}
+                  className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                >
+                  <FileText className="w-4 h-4 mr-2" />
+                  Export as CSV
+                </button>
+                <button
+                  onClick={exportAsExcel}
+                  className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                >
+                  <FileSpreadsheet className="w-4 h-4 mr-2" />
+                  Export as Excel
+                </button>
+                <button
+                  onClick={exportAsPDF}
+                  className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                >
+                  <FileText className="w-4 h-4 mr-2" />
+                  Export as PDF
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {isLoadingProducts || isLoadingCategories ? (
@@ -623,32 +892,4 @@ export default function AnalysisPage() {
       )}
     </div>
   );
-}
-
-// Generate time series data for historical analyses
-// In a real app, this would come from your API with actual historical data
-function generateTimeSeriesData(days: number) {
-  const data = [];
-  const today = new Date();
-
-  for (let i = days; i >= 0; i--) {
-    const date = new Date(today);
-    date.setDate(date.getDate() - i);
-
-    // Generate some realistic-looking inventory movement data
-    const stockIn = Math.floor(Math.random() * 50);
-    const stockOut = Math.floor(Math.random() * 30);
-
-    data.push({
-      date: date.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-      }),
-      stockIn,
-      stockOut,
-      netChange: stockIn - stockOut,
-    });
-  }
-
-  return data;
 }
